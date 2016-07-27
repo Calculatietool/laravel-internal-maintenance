@@ -12,7 +12,7 @@ class MaintenanceManager implements IntMaintInterface
      *
      * @var string
      */
-    protected $endpoint = 'http://localhost';
+    protected $endpoint = 'https://stage.calculatietool.com';
 
     /**
      * The HTTP Client instance.
