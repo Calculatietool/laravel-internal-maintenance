@@ -78,13 +78,10 @@ class MaintenanceManager implements IntMaintInterface
     protected function getTokenFields()
     {
         return [
-            // 'client_id' => $this->clientId,
-            'client_id' => 'd9f9518225123fe381af72e78645222f64510518',
-            // 'client_secret' => $this->clientSecret,
-            'client_secret' => '34961f8264be5cf743550371393610cf6dd196af',
+            'client_id' => config('services.calculatietool.client_id'),
+            'client_secret' => config('services.calculatietool.client_secret'),
+            'redirect_uri' => config('services.calculatietool.redirect'),
             'grant_type' => 'client_credentials',
-            // 'redirect_uri' => $this->redirectUrl,
-            'redirect_uri' => 'http://localhost:8080/login',
         ];
     }
 

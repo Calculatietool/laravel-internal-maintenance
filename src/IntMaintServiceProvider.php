@@ -14,6 +14,16 @@ class IntMaintServiceProvider extends ServiceProvider
     protected $defer = true;
 
     /**
+     * Boot the service provider.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        //
+    }
+
+    /**
      * Register the application services.
      *
      * @return void

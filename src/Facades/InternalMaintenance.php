@@ -4,7 +4,7 @@ namespace CalculatieTool\IntMaint\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
-class IntMaint extends Facade
+class InternalMaintenance extends Facade
 {
     /**
      * Get the registered name of the component.
