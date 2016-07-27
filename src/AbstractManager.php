@@ -13,7 +13,7 @@ abstract class AbstractManager implements IntMaintInterface
      *
      * @var string
      */
-    protected $endpoint = 'https://stage.calculatietool.com';
+    protected $endpoint = 'https://app.calculatietool.com';
 
     /**
      * The HTTP Client instance.
@@ -37,6 +37,21 @@ abstract class AbstractManager implements IntMaintInterface
     protected $expiresIn;
 
     /**
+     * Get endpoint from config if set.
+     *
+     * @return string
+     */
+    protected function getEndpoint()
+    {
+        $config_endpoint = config('services.calculatietool.endpoint');
+        if (!is_null($config_endpoint)) {
+            return $config_endpoint;
+        }
+
+        return $this->endpoint;
+    }
+
+    /**
      * Get a instance of the Guzzle HTTP client.
      *
      * @return \GuzzleHttp\Client
@@ -55,7 +70,7 @@ abstract class AbstractManager implements IntMaintInterface
      */
     protected function getTokenUrl()
     {
-        return $this->endpoint . '/oauth2/access_token';
+        return $this->getEndpoint() . '/oauth2/access_token';
     }
 
     /**
@@ -64,7 +79,7 @@ abstract class AbstractManager implements IntMaintInterface
     protected function getEntityByToken($uri, $access_token)
     {
         $response = $this->getHttpClient()->get(
-            $this->endpoint . $uri . '?access_token=' . $access_token
+            $this->getEndpoint() . $uri . '?access_token=' . $access_token
         );
 
         return json_decode($response->getBody()->getContents(), true);
@@ -114,9 +129,7 @@ abstract class AbstractManager implements IntMaintInterface
     }
 
     /**
-     * Request access token.
-     *
-     * @return this.
+     * {@inheritdoc}
      */
     public function request()
     {
