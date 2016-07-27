@@ -2,164 +2,55 @@
 
 namespace CalculatieTool\IntMaint;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\ClientInterface;
+use CalculatieTool\IntMaint\Contracts;
 
-class MaintenanceManager implements IntMaintInterface
+class MaintenanceManager extends AbstractManager
 {
     /**
-     * The base host.
+     * Creates a new datatype object and then generates a QrCode.
      *
-     * @var string
+     * @param $method
+     * @param $arguments
      */
-    protected $endpoint = 'https://stage.calculatietool.com';
-
-    /**
-     * The HTTP Client instance.
-     *
-     * @var \GuzzleHttp\Client
-     */
-    protected $httpClient;
-
-    /**
-     * Oauth access token.
-     *
-     * @var string
-     */
-    protected $accessToken;
-
-    /**
-     * Token expires in.
-     *
-     * @var int
-     */
-    protected $expiresIn;
-
-    /**
-     * Get a instance of the Guzzle HTTP client.
-     *
-     * @return \GuzzleHttp\Client
-     */
-    protected function getHttpClient()
+    public function get($entity, $callback)
     {
-        if (is_null($this->httpClient)) {
-            $this->httpClient = new Client();
+        $entity = $this->createClass($entity);
+    
+        $entity->handle($this->getEntityByToken(
+            $entity->getUri(),
+            $this->getAccessToken()
+        ), $callback);
+    }
+
+    /**
+     * Creates a new Entity class dynamically.
+     *
+     * @param string $entity
+     *
+     * @return CalculatieTool\IntMaint\Contracts\EntityInterface
+     */
+    private function createClass($entity)
+    {
+        $class = $this->formatClass($entity);
+        if (!class_exists($class)) {
+            throw new \Exception("Invalid entity");
         }
 
-        return $this->httpClient;
+        return new $class();
     }
 
     /**
-     * {@inheritdoc}
-     */
-    protected function getTokenUrl()
-    {
-        return $this->endpoint . '/oauth2/access_token';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    protected function getUserListByToken($access_token)
-    {
-        $response = $this->getHttpClient()->get(
-            $this->endpoint . '/oauth2/rest/internal/user_all?access_token=' . $access_token
-        );
-
-        return json_decode($response->getBody()->getContents(), true);
-    }
-
-    /**
-     * Get the POST fields for the token request.
+     * Formats the method name correctly.
      *
-     * @param  string  $code
-     * @return array
-     */
-    protected function getTokenFields()
-    {
-        return [
-            'client_id' => config('services.calculatietool.client_id'),
-            'client_secret' => config('services.calculatietool.client_secret'),
-            'redirect_uri' => config('services.calculatietool.redirect'),
-            'grant_type' => 'client_credentials',
-        ];
-    }
-
-    /**
-     * Get the access token response for the given code.
-     *
-     * @return array
-     */
-    public function getAccessTokenResponse()
-    {
-        $postKey = (version_compare(ClientInterface::VERSION, '6') === 1) ? 'form_params' : 'body';
-
-        $response = $this->getHttpClient()->post($this->getTokenUrl(), [
-            'headers' => ['Accept' => 'application/json'],
-            $postKey => $this->getTokenFields(),
-        ]);
-
-        return json_decode($response->getBody(), true);
-    }
-
-    /**
-     * Get the access token.
+     * @param $entity
      *
      * @return string
      */
-    protected function getAccessToken()
+    private function formatClass($entity)
     {
-        return $this->accessToken;
-    }
+        $entity = ucfirst(strtolower($entity));
+        $class = "CalculatieTool\IntMaint\Entities\\" . $entity . "List";
 
-    /**
-     * Request access token.
-     *
-     * @return this.
-     */
-    public function request()
-    {
-        $this->validateTokenResponse(
-            $token = $this->getAccessTokenResponse()
-        );
-        
-        $this->accessToken = $token['access_token'];
-        $this->expiresIn = $token['expires_in'];
-
-        return $this;
-    }
-
-    /**
-     * Validate returning token.
-     */
-    private function validateTokenResponse(Array $response)
-    {
-        if (!array_key_exists('access_token', $response))
-            throw new \Exception("Invalid server response");
-
-        if (!array_key_exists('expires_in', $response))
-            throw new \Exception("Invalid server response");
-
-        if (!array_key_exists('token_type', $response))
-            throw new \Exception("Invalid server response");
-
-        if (strtolower($response['token_type']) != 'bearer')
-            throw new \Exception("Invalid server response ");
-    }
-
-    /**
-     * Loop over each retrieved user.
-     *
-     * @param  Clojure  $callback
-     */
-    public function user($callback)
-    {
-        $userlist = $this->getUserListByToken(
-            $this->getAccessToken()
-        );
-
-        foreach ($userlist as $user) {
-            $callback($user);
-        }
+        return $class;
     }
 }
