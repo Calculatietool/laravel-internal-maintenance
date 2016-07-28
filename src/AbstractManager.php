@@ -5,6 +5,7 @@ namespace CalculatieTool\IntMaint;
 use GuzzleHttp\Client;
 use GuzzleHttp\ClientInterface;
 use CalculatieTool\IntMaint\Contracts\IntMaintInterface;
+use CalculatieTool\IntMaint\Exception\InvalidServerResponseException;
 
 abstract class AbstractManager implements IntMaintInterface
 {
@@ -149,15 +150,15 @@ abstract class AbstractManager implements IntMaintInterface
     private function validateTokenResponse(Array $response)
     {
         if (!array_key_exists('access_token', $response))
-            throw new \Exception("Invalid server response");
+            throw new \InvalidServerResponseException();
 
         if (!array_key_exists('expires_in', $response))
-            throw new \Exception("Invalid server response");
+            throw new \InvalidServerResponseException();
 
         if (!array_key_exists('token_type', $response))
-            throw new \Exception("Invalid server response");
+            throw new \InvalidServerResponseException();
 
         if (strtolower($response['token_type']) != 'bearer')
-            throw new \Exception("Invalid server response ");
+            throw new \InvalidServerResponseException();
     }
 }
